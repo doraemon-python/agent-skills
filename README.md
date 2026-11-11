@@ -9,6 +9,7 @@
 | --- | --- |
 | [adr](skills/adr/SKILL.md) | 技術的な意思決定を会話で整理し、ADR として `docs/decisions/` に記録する |
 | [dataset-crawler](skills/dataset-crawler/SKILL.md) | Web サイトを自律的・定期的にクロールし、物件・求人・株価などを承認済みスキーマの CSV データベースとして蓄積する。中断・再開、判断ログとレビュー、生データからの作り直しに対応 |
+| [ui-ux-driven-development](skills/ui-ux-driven-development/SKILL.md) | モックで動くUIを先に作って触ってもらい、その実感からロジック仕様とバックエンドを決める開発ワークフロー。技術的な判断は adr スキルと同じ規約で ADR に記録する |
 
 ## インストール
 
