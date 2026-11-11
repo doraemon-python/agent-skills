@@ -1,0 +1,7 @@
+# uv を使わない場合のセットアップ用（references/setup.md）。crawler.py 先頭の依存と同じ内容
+httpx>=0.27
+beautifulsoup4>=4.12
+lxml>=5.0
+markdownify>=0.13
+pyyaml>=6.0
+pypdf>=4.0

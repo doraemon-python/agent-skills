@@ -3,6 +3,13 @@
 アプリ開発のために作成した自作 [Agent Skills](https://agentskills.io) を管理・公開するリポジトリです。
 [skills CLI](https://github.com/vercel-labs/skills)（`npx skills`）でインストールできます。
 
+## 収録スキル
+
+| スキル | 内容 |
+| --- | --- |
+| [adr](skills/adr/SKILL.md) | 技術的な意思決定を会話で整理し、ADR として `docs/decisions/` に記録する |
+| [dataset-crawler](skills/dataset-crawler/SKILL.md) | Web サイトを自律的・定期的にクロールし、物件・求人・株価などを承認済みスキーマの CSV データベースとして蓄積する。中断・再開、判断ログとレビュー、生データからの作り直しに対応 |
+
 ## インストール
 
 Node.js 22.20 以上が必要です。Claude Code・Codex・Cursor など、skills CLI が対応するエージェントに入れられます。

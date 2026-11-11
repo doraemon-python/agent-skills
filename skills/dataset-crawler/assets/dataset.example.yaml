@@ -1,0 +1,108 @@
+# dataset-crawler の設定例（賃貸物件）。各キーの意味は references/config.md。
+# example.com は架空のサイト。実際の URL・正規表現に置き換えて使う。
+name: tokyo-rentals
+purpose: |
+  東京 23 区の賃貸物件について、駅・間取りごとの家賃相場と、掲載期間・値下げの傾向を比較する。
+  1 物件 = 1 行。同じ物件が複数サイトに出ていても、サイトごとに別行として扱う。
+schema_version: 1
+
+crawl:
+  user_agent: "dataset-crawler/0.1 (+mailto:you@example.com)"  # 連絡先を必ず入れる
+  concurrency: 4          # 同時に取得するホストの数（同じホストへは常に 1 本ずつ）
+  respect_robots: true
+  delay_sec: 3            # 同じホストへの最小間隔（秒）
+  timeout_sec: 30
+  max_retries: 3
+  strip_params: ["utm_*", "fbclid", "gclid", "sort"]
+
+output:
+  csv_encoding: utf-8     # Excel で直接開くなら utf-8-sig
+
+sources:
+  - id: example_rent
+    seeds:
+      - https://example.com/rent/list?area=13101&page=1
+    allow:
+      - '^https://example\.com/rent/list\?area=\d+&page=\d+$'
+      - '^https://example\.com/rent/detail/\d+$'
+    deny:
+      - '/print/'
+    pages:
+      - match: '/rent/list'
+        type: listing
+        extract: false      # 一覧はリンクをたどるだけ
+        revisit_hours: 24   # 新着を拾うため毎日見に行く
+        priority: 10
+      - match: '/rent/detail/'
+        type: detail
+        revisit_hours: 168  # 価格変更・掲載終了を追うため週 1 回見直す
+
+tables:
+  listings:
+    description: 物件 1 件（サイト上の 1 掲載）= 1 行
+    primary_key: [site_listing_id]
+    keep_history: true      # 家賃などが変わったら旧行を listings.history.csv に残す
+    columns:
+      - name: site_listing_id
+        type: string
+        description: サイト上の物件 ID（URL の末尾の数字）
+        example: "123456"
+      - name: name
+        type: string
+        required: true
+        description: 物件名
+      - name: rent_jpy
+        type: integer
+        required: true
+        judgment: true
+        description: 月額賃料（円）。管理費・共益費は含めない
+        example: 85000
+      - name: rent_raw
+        type: string
+        description: 賃料欄の表記そのまま（後で解釈を変えられるように残す）
+      - name: management_fee_jpy
+        type: integer
+        judgment: true
+        description: 管理費・共益費（円/月）。「なし」は 0、記載なしは空
+      - name: layout
+        type: enum
+        values: [1R, 1K, 1DK, 1LDK, 2K, 2DK, 2LDK, 3K, 3DK, 3LDK, 4LDK以上, その他]
+        judgment: true
+        description: 間取り。S（サービスルーム）は数えない（2SLDK → 2LDK）
+      - name: area_m2
+        type: number
+        description: 専有面積（m²）
+      - name: built_year
+        type: integer
+        judgment: true
+        description: 築年（西暦）。「築 15 年」は取得日の年から引く
+      - name: nearest_station
+        type: string
+        description: 最寄り駅名（「駅」は付けない）
+      - name: walk_minutes
+        type: integer
+        description: 最寄り駅から徒歩（分）。バス便は空にして note に書く
+      - name: features
+        type: list
+        description: 設備・条件のタグ（例 ["オートロック", "ペット可"]）
+      - name: description
+        type: text
+        description: 物件の説明文。1000 文字を超えたら files/ に保存される
+      - name: floor_plan
+        type: image
+        description: 間取り図
+      - name: photos
+        type: image
+        multiple: true
+        description: 物件写真（最大 5 枚）
+      - name: posted_on
+        type: date
+        description: 掲載開始日
+      - name: note
+        type: string
+        description: どの列にも入らないが判断に影響する補足
+
+# 判断基準。レビューで人が直した内容は、ここに追記して以後の抽出をそろえる
+conventions:
+  - 賃料が「8.5万円」のような表記なら 85000 にする。幅がある（「8万〜9万円」）場合は下限を入れ、note に元の表記を書く
+  - 「管理費込み」と書かれた賃料は、管理費の内訳がわかれば差し引く。わからなければそのまま入れ、confidence を low にする
