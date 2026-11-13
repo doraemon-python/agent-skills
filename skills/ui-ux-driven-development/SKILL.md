@@ -28,7 +28,7 @@ metadata:
 | Step | 内容 | 提案 | 承認 | 主な成果物 | 手順 |
 |---|---|---|---|---|---|
 | 0 | 開始・再開 | — | — | `docs/progress.md` | このファイルの「Step 0」 |
-| 1 | ユーザー意図の理解 | P1 | （Aに統合） | `docs/intent.md` | [step1-intent.md](references/step1-intent.md) |
+| 1 | ユーザー意図の理解 | P1 | （Aに統合） | `docs/intent.md`、`docs/domain.md` | [step1-intent.md](references/step1-intent.md) |
 | 2 | 技術仕様の決定と初期化 | P2 | **A** | 依存関係ファイル、初期化済みプロジェクト、ADR | [step2-tech-stack.md](references/step2-tech-stack.md) |
 | 3 | 画面構成の設計 | P3 | **B** | 画面スケルトン、`docs/_tmp/screens.md` | [step3-screens.md](references/step3-screens.md) |
 | 4 | UIの作成 | P4, P5 | **C** | モックで動くUI、カタログ（Storybook等） | [step4-ui.md](references/step4-ui.md) |
@@ -50,6 +50,7 @@ metadata:
 | [progress.md](assets/progress.md) | Step0 で `docs/progress.md` を作るとき |
 | [open-questions.md](assets/open-questions.md) | Step0 で `docs/open-questions.md` を作るとき |
 | [intent.md](assets/intent.md) | Step1 で `docs/intent.md` を作るとき |
+| [domain.md](assets/domain.md) | Step1 で `docs/domain.md` を作るとき（量が多くなって `docs/domain/` に分けるときも） |
 | [ui-principles.md](assets/ui-principles.md) | Step4 で `docs/ui-principles.md` を作るとき |
 | [logic-spec.md](assets/logic-spec.md) | Step4 で `docs/logic-spec.md` を作るとき |
 | [decisions-index.md](assets/decisions-index.md) | 最初の ADR を書くときに `docs/decisions/README.md` を作るとき |
@@ -98,7 +99,7 @@ metadata:
 
 | ゲート | タイミング | ユーザーに確認してもらうもの |
 |---|---|---|
-| 【承認A】 | Step2 の終わり（初期化の前） | ユーザー意図のまとめ ＋ 技術仕様（ADR で決めた項目は決定済みとして示すだけ） |
+| 【承認A】 | Step2 の終わり（初期化の前） | ユーザー意図とドメイン知識のまとめ ＋ 技術仕様（ADR で決めた項目は決定済みとして示すだけ） |
 | 【承認B】 | Step3 の終わり | クリックで遷移できる画面スケルトン |
 | 【承認C】 | Step4 の終わり | モックデータで動くUI一式 |
 | 【承認D】 | Step7 の終わり | ロジック仕様 ＋ バックエンド設計（ADR で決めた判断は決定済みとして示すだけ） |
@@ -113,10 +114,14 @@ Step1、Step5、Step6、Step8 には承認ゲートがない。Step1 の成果�
 ```
 docs/
 ├── progress.md           # 永続: 現在のStep・承認履歴・次のアクション（作業開始時に必ず最初に読む）
-├── intent.md             # 永続: ユーザー意図、用語集、非機能要件
+├── intent.md             # 永続: 目的・ユーザー・制約・非機能要件
+├── domain.md             # 永続: ドメイン知識（用語集、業務の事実・背景）。多い場合は domain/ に分ける
 ├── ui-principles.md      # 永続: 修正指示から得たUI/UX思想、不採用案とその理由
 ├── logic-spec.md         # 永続: ロジック仕様（ルールID、なぜ、対応するテスト）
 ├── open-questions.md     # 永続: 未決事項、後で決める事項、気づいた改善案
+├── domain/               # （分けた場合のみ。domain.md の代わり）
+│   ├── README.md         #   用語集と各ファイルの一覧
+│   └── <業務領域>.md      #   業務領域ごとの業務の事実・背景
 ├── decisions/            # 永続: 技術的な判断の ADR
 │   ├── README.md         #   ADR の索引（frontmatter から作る一覧表）
 │   └── NNNN-<slug>.md    #   1ファイル = 1つの決定
@@ -131,6 +136,34 @@ docs/
 2. `_tmp/` のファイルを削除する前に、残す価値のある判断（なぜそうしたか）を、下の「判断の記録先」に従って永続ドキュメントへ移す。
 3. 永続ドキュメントは簡潔に保つ。コードやテストを読めば分かることは書かず、「なぜ」と「コードから読み取れないこと」だけを書く。
 
+### ドメイン知識の置き場所
+
+ドメイン知識は、量にかかわらず `docs/domain.md` に置く。量に応じて変えるのは分け方だけで、置き場所は変えない。書く内容を次の3つに分ける。
+
+| 内容 | 例 | 記録先 |
+|---|---|---|
+| 用語 | 業務で使う言葉とその意味 | `docs/domain.md` の用語集 |
+| 業務の事実・背景（アプリの外で決まっていること） | 法令、業界の慣習、計算式、業務の流れ | `docs/domain.md` の「業務の事実・背景」（ID: D-001 など） |
+| アプリの挙動のルール（このアプリで決めたこと） | 権限、バリデーション、状態の遷移 | `docs/logic-spec.md`。根拠になる事実は `domain.md` の ID を参照し、同じ内容を書き写さない |
+
+`intent.md` には目的・ユーザー・制約・非機能要件だけを書き、用語や業務の事実は書かない。
+
+量に応じた形:
+
+| 量 | 形 |
+|---|---|
+| ない、またはごく少ない | `docs/domain.md` に「特になし（一般的な用語のみ）」と書くか、用語を数個書くだけにする。ファイルは必ず作る |
+| ふつう | `docs/domain.md` 1ファイルに、用語集と業務の事実・背景を書く |
+| 多い（目安: 300行を超える、または独立した業務領域が複数ある） | `docs/domain/` に分ける。`README.md` に用語集と各ファイルの一覧（ファイル、扱う業務領域、読む場面）を置き、業務領域ごとにファイルを作る。`docs/domain.md` は残さない |
+
+ルール:
+
+1. 推測で書かない。ユーザーの回答か、ユーザーが提供した資料に由来するものだけを、出典（回答日／資料）付きで書く。分からないものは【提案】で聞く。
+2. Step1 で作り、以後のどのStepでも（特に Step6、Step8、追加開発）、新しく分かった用語や業務の事実をその場で追記する。
+3. 分けている場合は、`docs/domain/README.md` の一覧を見て、作業に関係するファイルだけを読む。すべてを読まない。
+4. 追記して目安を超えたら、その時点で `docs/domain/` に分ける。分けても D-NNN の ID は変えず（`logic-spec.md` からの参照を切らない）、ほかのドキュメントにある `docs/domain.md` へのリンクを直す。
+5. このスキルの手順で `docs/domain.md` と書いた箇所は、分けた場合は `docs/domain/` の該当ファイルと読み替える。
+
 ---
 
 ## 判断理由の記録（ADR）
@@ -144,7 +177,8 @@ docs/
 | 技術・アーキテクチャの判断（言語、フレームワーク、ライブラリ、認証方式、レンダリング方式、デプロイ先、DB・ORM、データモデル、データアクセス層の契約、層の分け方、インフラ、開発プロセス）のうち、**後から変えにくいか、理由がコードから読み取れないもの** | ADR（`docs/decisions/`） |
 | 上の基準を満たさない小さな技術判断 | ドキュメントに残さず、コミットメッセージかPRの説明に書く |
 | UI/UXの思想、デザインの不採用案 | `docs/ui-principles.md` |
-| ロジックのルールとその理由 | `docs/logic-spec.md` |
+| 用語、業務の事実・背景（アプリの外で決まっていること） | `docs/domain.md`（多い場合は `docs/domain/`） |
+| ロジックのルールとその理由（このアプリで決めたこと） | `docs/logic-spec.md` |
 | まだ決めていないこと | `docs/open-questions.md` |
 
 ### ワークフローの中での ADR の扱い
