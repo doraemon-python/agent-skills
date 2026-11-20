@@ -1,6 +1,6 @@
 ---
 name: adr
-description: Help the user make an architectural or technical decision through conversation, then record it as an ADR in docs/decisions/. Use this skill whenever the user is weighing options for a design, technology, library, data model, API contract, infrastructure, or process choice; asks "which should we use", "should we change X", "why did we do Y"; wants to reverse or revisit an earlier decision; or says anything like "ADRにして", "決定を記録して", "record this decision". Also use it proactively when a conversation has clearly converged on a decision that is costly to reverse or not obvious from the code, and offer to record it.
+description: Help the user make an architectural or technical decision through conversation, then record it as an ADR in docs/decisions/. Use this skill whenever the user is weighing options for a design, technology, library, data model, API contract, infrastructure, or process choice; asks "which should we use", "should we change X", "why did we do Y"; wants to reverse or revisit an earlier decision; or says anything like "ADRにして", "決定を記録して", "record this decision". Also use it to resolve merge conflicts in docs/decisions/. Also use it proactively when a conversation has clearly converged on a decision that is costly to reverse or not obvious from the code, and offer to record it.
 ---
 
 # ADR: decide in conversation, record faithfully
@@ -20,7 +20,7 @@ Earlier decisions and the current code are the real constraints. Read them first
   - `ls docs/decisions/`
   - `rg -l "status: accepted" docs/decisions/` to restrict to decisions currently in force
   - `rg -l "tags:.*<topic>" docs/decisions/` and `rg -l "code:.*<path>" docs/decisions/`
-  - `rg "ADR-[0-9]{4}" <relevant source paths>` to find decisions anchored in the code you are about to touch
+  - `rg "ADR-[0-9]" <relevant source paths>` to find decisions anchored in the code you are about to touch
 - Read the relevant code, config and tests. Prefer what the code actually does over what any document says it does.
 - Read `docs/domain/` if the decision touches business rules.
 - Check `revisit_if` on related accepted ADRs. If a condition has been met, say so: that is often the real reason the conversation is happening.
@@ -55,10 +55,12 @@ Record only reasons the user agreed with or stated. Do not add rationale that wa
 
 ## Phase 5: Record
 
-### Numbering and filename
+### Id and filename
 
-- Next id = highest existing id + 1, zero-padded to 4 digits. Never reuse or renumber.
-- Filename: `docs/decisions/NNNN-english-kebab-slug.md`. Keep the slug in English ASCII and include the words someone would search for (`0087-replace-postgres-job-queue-with-sqs.md`, not `0087-queue.md`). The filename is the cheapest search index there is.
+- Id = the current local time as `YYYYMMDD-HHMM` (`date +%Y%m%d-%H%M`), not a sequence number. With "highest id + 1", branches worked on in parallel all pick the same number, and git merges the duplicates without a conflict whenever the slugs differ. A time-based id avoids that. If the id already exists in `docs/decisions/`, use the next minute.
+- Never reuse an id or change it once it is on the main branch.
+- If the repository already has sequence-numbered ADRs (`0001-...`), leave them as they are and use time-based ids for new ones.
+- Filename: `docs/decisions/YYYYMMDD-HHMM-english-kebab-slug.md`. Keep the slug in English ASCII and include the words someone would search for (`20261019-1432-replace-postgres-job-queue-with-sqs.md`, not `20261019-1432-queue.md`). The filename is the cheapest search index there is.
 - Get the date from the environment (`date +%F`), never from memory.
 
 ### Language
@@ -73,22 +75,22 @@ Use exactly this structure. Keep the whole ADR to roughly one screen; link to is
 
 ```markdown
 ---
-id: "0087"
+id: "20261019-1432"
 title: ジョブキューをPostgresからSQSに移行する
 status: accepted
 date: 2026-10-19
-supersedes: ["0042"]
+supersedes: ["20250611-0915"]
 superseded_by: []
 tags: [infra, queue, async]
 code: [src/jobs/, infra/sqs.tf]
 revisit_if: 1日あたりのジョブ数が1,000件未満に戻った場合
 ---
 
-# 0087. ジョブキューをPostgresからSQSに移行する
+# 20261019-1432. ジョブキューをPostgresからSQSに移行する
 
 ## 背景
 
-なぜ今この決定が必要になったか。前提となる事実、制約、関連するADR（ADR-0042）を簡潔に書く。
+なぜ今この決定が必要になったか。前提となる事実、制約、関連するADR（ADR-20250611-0915）を簡潔に書く。
 
 ## 決定
 
@@ -117,7 +119,7 @@ revisit_if: 1日あたりのジョブ数が1,000件未満に戻った場合
 
 Field rules:
 
-- `id` is a quoted string so YAML keeps the leading zeros.
+- `id` is a quoted string and matches the start of the filename.
 - `status` is one of `proposed`, `accepted`, `superseded`, `deprecated`.
 - `supersedes` and `superseded_by` list quoted ids; use `[]` when empty.
 - `code` lists the paths where the decision takes effect. It is how someone editing those paths finds this ADR.
@@ -127,8 +129,8 @@ Field rules:
 
 Never rewrite the body of an accepted ADR. History is the point. When a decision changes:
 
-1. Write a new ADR with `supersedes: ["NNNN"]` and explain in 背景 why the old decision no longer holds.
-2. In the old ADR, change only `status: superseded` and `superseded_by: ["MMMM"]`.
+1. Write a new ADR with `supersedes: ["<old id>"]` and explain in 背景 why the old decision no longer holds.
+2. In the old ADR, change only `status: superseded` and `superseded_by: ["<new id>"]`.
 
 For a decision that is simply abandoned with no replacement, set `status: deprecated` and add one dated line at the end of the body saying why. Fixing typos and broken links is fine at any time.
 
@@ -137,7 +139,7 @@ For a decision that is simply abandoned with no replacement, set `status: deprec
 Where the decision explains code that would otherwise look odd or tempting to "fix", propose a short comment referencing it, and add it once the user agrees:
 
 ```ts
-// ADR-0087: 再試行はSQSの可視性タイムアウトに任せる。アプリ側でリトライしない
+// ADR-20261019-1432: 再試行はSQSの可視性タイムアウトに任せる。アプリ側でリトライしない
 ```
 
 Do this sparingly: at the places a future reader would otherwise undo the decision, not on every file in `code`.
@@ -146,9 +148,20 @@ Do this sparingly: at the places a future reader would otherwise undo the decisi
 
 `docs/decisions/README.md` is an index derived from frontmatter. If the repository has a generator for it (check `AGENTS.md`, `Makefile`, `package.json` scripts), run it. Otherwise update the existing table in place, following its current format, and mention to the user that a generator would remove this manual step.
 
+### Resolve merge conflicts
+
+Time-based ids keep parallel branches from picking the same id, but merging or rebasing branches that both touched `docs/decisions/` can still conflict. Resolve each case as follows, then tell the user what you changed.
+
+1. **Index rows** (`docs/decisions/README.md`): if the repository has a generator, regenerate the index instead of editing it. Otherwise keep the rows from both sides and sort them by id. Then check that every ADR file has exactly one row and that each row's status matches the file's frontmatter.
+2. **`code` of the same ADR**: keep the paths from both sides, then remove paths that no longer exist.
+3. **`status` or `superseded_by` of the same ADR**: both branches replaced or abandoned the same decision, so there are two competing decisions on one question. Do not resolve this mechanically. Show the user both new ADRs and ask which to keep, or whether to combine them:
+   - Keep one: in the old ADR, list only the kept ADR in `superseded_by`. Set the other new ADR to `deprecated`, add a dated line at the end of its body saying which ADR was chosen instead, and check whether code from its branch has to change.
+   - Combine: write a new ADR that supersedes both new ADRs and set both to `superseded`. In the old ADR, list both in `superseded_by`.
+4. **Duplicate ids** (two branches created ADRs in the same minute; rare): identical filenames show up as an add/add conflict, but different slugs merge silently, so check after any merge that touched `docs/decisions/`: `ls docs/decisions/ | grep -oE '^[0-9]{8}-[0-9]{4}' | sort | uniq -d`. Change the id of the ADR that is not yet on the main branch to the next unused minute, and update its filename, `id`, heading and every reference (`rg "<old id>"`: `supersedes`, `superseded_by`, `ADR-<id>` comments in code, the index).
+
 ### Finish
 
-Tell the user which files you created or changed, and suggest a commit message such as `docs(adr): 0087 ジョブキューをSQSに移行`. If the ADR's 結果・影響 lists follow-up work, offer to start it or turn it into issues.
+Tell the user which files you created or changed, and suggest a commit message such as `docs(adr): ジョブキューをSQSに移行`. If the ADR's 結果・影響 lists follow-up work, offer to start it or turn it into issues.
 
 ## Things to avoid
 

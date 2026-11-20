@@ -38,7 +38,7 @@ metadata:
 | 8 | 実装・テスト・結合 | — | （報告のみ） | バックエンド、テスト、結合済みアプリ | [step8-implementation.md](references/step8-implementation.md) |
 | 9 | 最終確認 | — | **E** | 完成したアプリ | [step9-final-check.md](references/step9-final-check.md) |
 | — | 追加開発（機能追加・UI変更・バグ修正） | — | 規模による | — | [additional-development.md](references/additional-development.md) |
-| — | ADR を読む・書くとき（Step2・7・8、追加開発） | — | — | `docs/decisions/` | [adr.md](references/adr.md) |
+| — | ADR を読む・書くとき（Step2・7・8、追加開発）、`docs/decisions/` のマージの conflict を直すとき | — | — | `docs/decisions/` | [adr.md](references/adr.md) |
 
 テンプレートは `assets/` にある。該当するStepで、コピーして使う。
 
@@ -126,7 +126,7 @@ docs/
 │   └── <業務領域>.md      #   業務領域ごとの業務の事実・背景
 ├── decisions/            # 永続: 技術的な判断の ADR
 │   ├── README.md         #   ADR の索引（frontmatter から作る一覧表）
-│   └── NNNN-<slug>.md    #   1ファイル = 1つの決定
+│   └── <id>-<slug>.md    #   1ファイル = 1つの決定（id は作成日時 YYYYMMDD-HHMM）
 └── _tmp/                 # 一時: Stepの完了時に削除する
     ├── screens.md        # Step3〜4: 画面一覧、各画面の目的、遷移図
     └── backend-design.md # Step7〜8: バックエンド設計
@@ -177,7 +177,7 @@ Q-NNN の ID は `open-questions.md` の中だけで使う。項目は決まっ�
 1. 回答を「判断の記録先」の表に従って記録先（`intent.md`、`domain.md`、`logic-spec.md`、`ui-principles.md`、ADR）に反映する。改善案を採用しなかった場合は、残す価値のある理由（UIの不採用案など）だけを記録先に書く。
 2. `open-questions.md` からその項目を消す。「解決済み」として残さない。経緯は記録先と git の履歴に残る。
 3. 反映がドキュメントの追記・編集だけで済むなら、ここで終える。
-4. ソースコードの変更が必要で、今のフローの残りのStepで実装しない場合は、`docs/progress.md` の「未着手の作業」に、内容、根拠（反映先のドキュメントとルールID・ADR番号など）、影響範囲（画面、ファイル、ルールID）、記録日を書く。反映先の記述にも「（未実装）」と付け、コードと食い違っていることが分かるようにする。勝手に実装はしない。
+4. ソースコードの変更が必要で、今のフローの残りのStepで実装しない場合は、`docs/progress.md` の「未着手の作業」に、内容、根拠（反映先のドキュメントとルールID・ADR の id など）、影響範囲（画面、ファイル、ルールID）、記録日を書く。反映先の記述にも「（未実装）」と付け、コードと食い違っていることが分かるようにする。勝手に実装はしない。
 5. 未着手の作業は、次に追加開発を始めるときの最初にユーザーに伝える（[references/additional-development.md](references/additional-development.md) の手順1）。実装したら、一覧から消し、反映先の「（未実装）」を外す。取りやめた場合は、反映先の記述も元に戻してから一覧から消す。
 
 改善案のうち、採用するかどうかをまだ決めない（保留する）ものは `open-questions.md` に残す。
