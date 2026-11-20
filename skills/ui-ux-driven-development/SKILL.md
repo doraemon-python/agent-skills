@@ -53,6 +53,7 @@ metadata:
 | [domain.md](assets/domain.md) | Step1 で `docs/domain.md` を作るとき（量が多くなって `docs/domain/` に分けるときも） |
 | [ui-principles.md](assets/ui-principles.md) | Step4 で `docs/ui-principles.md` を作るとき |
 | [logic-spec.md](assets/logic-spec.md) | Step4 で `docs/logic-spec.md` を作るとき |
+| [manual-tests.md](assets/manual-tests.md) | Step8 で `docs/manual-tests.md` を作るとき（E2Eツールを採用していない場合のみ） |
 | [decisions-index.md](assets/decisions-index.md) | 最初の ADR を書くときに `docs/decisions/README.md` を作るとき |
 
 ---
